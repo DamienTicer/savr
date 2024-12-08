@@ -30,15 +30,7 @@ cd <repository_directory>
 ### 2. Install Dependencies
 Navigate to the project directory and install the required dependencies for both the frontend and backend:
 
-#### Backend:
 ```bash
-cd backend
-npm install
-```
-
-#### Frontend:
-```bash
-cd ../frontend
 npm install
 ```
 
@@ -47,11 +39,23 @@ npm install
 ### 3. Set Up the MySQL Database
 
 1. Open your MySQL client (e.g., MySQL Workbench or command line).
-2. Create a new database:
+you can do this by either running the command:
+   ```bash
+   mysqld
+   ```
+   or
+   ```bash
+   cd "C:\Program Files\MySQL\MySQL Server <version>\bin"
+   .\mysql -u root -p
+   ```
+   Then enter your password to mysql
+   If you're having trouble, you may have a different path to your mysql. Also make sure that you input the version number where it says <version>
+
+3. Create a new database:
    ```sql
    CREATE DATABASE savr;
    ```
-3. Import the required tables and schema:
+4. Import the required tables and schema:
    ```sql
    USE savr;
    CREATE TABLE savings_goals (
@@ -78,7 +82,7 @@ npm install
        notes TEXT
    );
    ```
-4. Ensure the `id` fields in all tables are set to `AUTO_INCREMENT`.
+5. Ensure the `id` fields in all tables are set to `AUTO_INCREMENT`.
     You can do so by inputting the following commands into your mysql terminal:
         ALTER TABLE income_sources MODIFY id INT AUTO_INCREMENT;
         ALTER TABLE savings_goals MODIFY id INT AUTO_INCREMENT;
@@ -87,7 +91,7 @@ npm install
 ---
 
 ### 4. Configure Environment Variables
-Create a `.env` file in the `backend` directory with the following variables:
+Enzure the `.env` file in the project directory has the following variables:
 
 ```env
 DB_HOST=localhost
@@ -104,10 +108,11 @@ DB_PORT=3306 should be the default port you have anyway
 ## Running the Application
 
 ### 1. Start the Backend
+Keep the previous terminal open and open a new terminal
 Navigate to the backend directory and start the server:
 ```bash
 cd backend
-npm start
+node server.js
 ```
 You should see a message like:
 ```
@@ -116,7 +121,7 @@ Database initialized!
 ```
 
 ### 2. Start the Frontend
-Open a new terminal, navigate to the frontend directory, and start the React application:
+Open another new terminal, navigate to the frontend directory, and start the React application:
 ```bash
 cd frontend
 npm start
