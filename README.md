@@ -111,7 +111,6 @@ DB_PORT=3306 should be the default port you have anyway
 Keep the previous terminal open and open a new terminal
 Navigate to the backend directory and start the server:
 ```bash
-cd backend
 node server.js
 ```
 You should see a message like:
@@ -123,7 +122,6 @@ Database initialized!
 ### 2. Start the Frontend
 Open another new terminal, navigate to the frontend directory, and start the React application:
 ```bash
-cd frontend
 npm start
 ```
 Your browser should open at `http://localhost:3000`. If not, open it manually.
