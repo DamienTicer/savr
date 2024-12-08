@@ -17,9 +17,27 @@ function Register() {
     }
   };
 
+  // Define the goToHomePage function
+  const goToHomePage = () => {
+    window.location.href = "/"; // Redirect to the home page
+  };
+
   return (
     <div>
       <h1>Register</h1>
+      <h2><button
+        onClick={goToHomePage}
+        style={{
+          marginTop: "10px",
+          padding: "10px",
+          backgroundColor: "#008CBA",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}>
+        Go to Home Page
+      </button></h2>
       <form>
         <div>
           <label htmlFor="email">Email:</label>
