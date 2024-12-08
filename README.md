@@ -8,11 +8,11 @@ This project is a savings tracker application that allows users to manage their 
 ## Prerequisites
 Before running the project, ensure you have the following installed on your system:
 
-1. **Node.js** (version 16 or higher)
+1. [**Node.js**](https://nodejs.org/en) (version 16 or higher)
 2. **npm** (comes with Node.js)
-3. **MySQL** (version 8.0 or higher)
-4. **Git** (optional, for cloning the repository)
-5. A code editor like Visual Studio Code (optional, but recommended).
+3. [**MySQL**](https://dev.mysql.com/downloads/mysql/) (version 8.0 or higher)
+4. [**Git**](https://docs.github.com/en/desktop/installing-and-authenticating-to-github-desktop/installing-github-desktop) (optional, for cloning the repository)
+5. A code editor like [Visual Studio Code](https://code.visualstudio.com/) (optional, but recommended).
 
 ---
 
