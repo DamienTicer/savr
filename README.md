@@ -14,6 +14,8 @@ Before running the project, ensure you have the following installed on your syst
 4. [**Git**](https://docs.github.com/en/desktop/installing-and-authenticating-to-github-desktop/installing-github-desktop) (optional, for cloning the repository)
 5. A code editor like [Visual Studio Code](https://code.visualstudio.com/) (optional, but recommended).
 
+   Restart your computer after your done downloading all of these.
+
 ---
 
 ## Setting Up the Project
