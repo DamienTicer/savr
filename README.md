@@ -81,6 +81,15 @@ you can do this by either running the command:
        date DATE,
        notes TEXT
    );
+
+   CREATE TABLE loans (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    original_debt DECIMAL(10, 2) NOT NULL,
+    current_debt DECIMAL(10, 2) NOT NULL,
+    interest_rate DECIMAL(5, 2) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+   );
    ```
 5. Ensure the `id` fields in all tables are set to `AUTO_INCREMENT`.
     You can do so by inputting the following commands into your mysql terminal:

@@ -10,6 +10,8 @@ function Dashboard() {
   const [newSavingsGoal, setNewSavingsGoal] = useState({ targetAmount: "", deadline: "" });
   const [newIncomeSource, setNewIncomeSource] = useState({ source: "", amount: "", frequency: "" });
   const [newExpense, setNewExpense] = useState({ category: "", amount: "", date: "", notes: "" });
+  const [loans, setLoans] = useState([]); // State for loans
+  const [newLoan, setNewLoan] = useState({ originalDebt: "", currentDebt: "", interestRate: "" });
 
   // Fetch user profile data from the backend
   useEffect(() => {
@@ -32,7 +34,27 @@ function Dashboard() {
       }
     };
 
+    const fetchLoans = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:3001/loans", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch loans.");
+        }
+
+        const data = await response.json();
+        setLoans(data);
+      } catch (err) {
+        console.error(err.message);
+      }
+    };
+
     fetchProfile();
+    fetchLoans();
+
   }, []);
 
   // Logout handler
@@ -191,7 +213,7 @@ function Dashboard() {
 
   // Handle removing an expense
   const handleRemoveExpense = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to remove this expense?");
+    const confirmDelete = window.confirm("Are you sure you want to remove this entry?");
     if (!confirmDelete) return;
   
     try {
@@ -216,6 +238,53 @@ function Dashboard() {
       alert(err.message);
     }
   };  
+
+  const handleAddLoan = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:3001/loans", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newLoan),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add loan.");
+      }
+
+      const addedLoan = await response.json();
+      setLoans((prev) => [...prev, addedLoan]);
+      setNewLoan({ originalDebt: "", currentDebt: "", interestRate: "" });
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleRemoveLoan = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to remove this loan?");
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:3001/loans/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete loan.");
+      }
+
+      setLoans((prev) => prev.filter((loan) => loan.id !== id));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   // Render error message if an error occurs
   if (error) {
@@ -295,122 +364,177 @@ function Dashboard() {
         <div className="income-sources">
           <h3>Income Sources</h3>
           {profile.incomeSources.length > 0 ? (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ borderCollapse: "collapse", tableLayout: "auto" }}>
+                  <thead>
+                    <tr>
+                      <th style={{ border: "1px solid black", padding: "8px" }}>Source</th>
+                      <th style={{ border: "1px solid black", padding: "8px" }}>Amount</th>
+                      <th style={{ border: "1px solid black", padding: "8px" }}>frequency</th>
+                      <th style={{ border: "1px solid black", padding: "8px" }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profile.incomeSources.map((source) => (
+                      <tr key={source.id}>
+                        <td style={{ border: "1px solid black", padding: "8px" }}>{source.source}</td>
+                        <td style={{ border: "1px solid black", padding: "8px" }}>{source.amount}</td>
+                        <td style={{ border: "1px solid black", padding: "8px" }}>{source.frequency}</td>
+                        <td style={{ border: "1px solid black", padding: "8px" }}>
+                          <button onClick={() => handleRemoveIncomeSource(source.id)}>Remove</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+            </div>
+          ) : (
+            <p>No income sources found.</p>
+          )}
+          <div className="add-income-source">
+            <h4>Add Income Source</h4>
+            <input
+              type="text"
+              placeholder="Source"
+              value={newIncomeSource.source}
+              onChange={(e) => setNewIncomeSource({ ...newIncomeSource, source: e.target.value })}
+            />
+            <input
+              type="number"
+              placeholder="Amount"
+              value={newIncomeSource.amount}
+              onChange={(e) => setNewIncomeSource({ ...newIncomeSource, amount: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Frequency"
+              value={newIncomeSource.frequency}
+              onChange={(e) => setNewIncomeSource({ ...newIncomeSource, frequency: e.target.value })}
+            />
+            <button onClick={handleAddIncomeSource}>Add</button>
+          </div>
+        </div>
+
+        {/* Expenses Section */}
+        <div className="expenses">
+          <h3>Expenses</h3>
+          {profile.expenses.length > 0 ? (
             <div style={{ overflowX: "auto" }}>
               <table style={{ borderCollapse: "collapse", tableLayout: "auto" }}>
                 <thead>
                   <tr>
-                    <th style={{ border: "1px solid black", padding: "8px" }}>Source</th>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Category</th>
                     <th style={{ border: "1px solid black", padding: "8px" }}>Amount</th>
-                    <th style={{ border: "1px solid black", padding: "8px" }}>frequency</th>
-<th style={{ border: "1px solid black", padding: "8px" }}>Actions</th>
-</tr>
-</thead>
-<tbody>
-{profile.incomeSources.map((source) => (
-<tr key={source.id}>
-  <td style={{ border: "1px solid black", padding: "8px" }}>{source.source}</td>
-  <td style={{ border: "1px solid black", padding: "8px" }}>{source.amount}</td>
-  <td style={{ border: "1px solid black", padding: "8px" }}>{source.frequency}</td>
-  <td style={{ border: "1px solid black", padding: "8px" }}>
-    <button onClick={() => handleRemoveIncomeSource(source.id)}>Remove</button>
-  </td>
-</tr>
-))}
-</tbody>
-</table>
-</div>
-) : (
-<p>No income sources found.</p>
-)}
-<div className="add-income-source">
-<h4>Add Income Source</h4>
-<input
-type="text"
-placeholder="Source"
-value={newIncomeSource.source}
-onChange={(e) => setNewIncomeSource({ ...newIncomeSource, source: e.target.value })}
-/>
-<input
-type="number"
-placeholder="Amount"
-value={newIncomeSource.amount}
-onChange={(e) => setNewIncomeSource({ ...newIncomeSource, amount: e.target.value })}
-/>
-<input
-type="text"
-placeholder="Frequency"
-value={newIncomeSource.frequency}
-onChange={(e) => setNewIncomeSource({ ...newIncomeSource, frequency: e.target.value })}
-/>
-<button onClick={handleAddIncomeSource}>Add</button>
-</div>
-</div>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Date</th>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Notes</th>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.expenses.map((expense) => (
+                    <tr key={expense.id}>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{expense.category}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{expense.amount}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{formatDate(expense.date)}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{expense.notes}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        <button onClick={() => handleRemoveExpense(expense.id)}>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p>No expenses found.</p>
+          )}
+          <div className="add-expense">
+            <h4>Add Expense</h4>
+            <input
+              type="text"
+              placeholder="Category"
+              value={newExpense.category}
+              onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+            />
+            <input
+              type="number"
+              placeholder="Amount"
+              value={newExpense.amount}
+              onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+            />
+            <input
+              type="date"
+              placeholder="Date"
+              value={newExpense.date}
+              onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Notes"
+              value={newExpense.notes}
+              onChange={(e) => setNewExpense({ ...newExpense, notes: e.target.value })}
+            />
+            <button onClick={handleAddExpense}>Add</button>
+          </div>
+        </div>
 
-{/* Expenses Section */}
-<div className="expenses">
-<h3>Expenses</h3>
-{profile.expenses.length > 0 ? (
-<div style={{ overflowX: "auto" }}>
-<table style={{ borderCollapse: "collapse", tableLayout: "auto" }}>
-<thead>
-<tr>
-<th style={{ border: "1px solid black", padding: "8px" }}>Category</th>
-<th style={{ border: "1px solid black", padding: "8px" }}>Amount</th>
-<th style={{ border: "1px solid black", padding: "8px" }}>Date</th>
-<th style={{ border: "1px solid black", padding: "8px" }}>Notes</th>
-<th style={{ border: "1px solid black", padding: "8px" }}>Actions</th>
-</tr>
-</thead>
-<tbody>
-{profile.expenses.map((expense) => (
-<tr key={expense.id}>
-  <td style={{ border: "1px solid black", padding: "8px" }}>{expense.category}</td>
-  <td style={{ border: "1px solid black", padding: "8px" }}>{expense.amount}</td>
-  <td style={{ border: "1px solid black", padding: "8px" }}>{formatDate(expense.date)}</td>
-  <td style={{ border: "1px solid black", padding: "8px" }}>{expense.notes}</td>
-  <td style={{ border: "1px solid black", padding: "8px" }}>
-    <button onClick={() => handleRemoveExpense(expense.id)}>Remove</button>
-  </td>
-</tr>
-))}
-</tbody>
-</table>
-</div>
-) : (
-<p>No expenses found.</p>
-)}
-<div className="add-expense">
-<h4>Add Expense</h4>
-<input
-type="text"
-placeholder="Category"
-value={newExpense.category}
-onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-/>
-<input
-type="number"
-placeholder="Amount"
-value={newExpense.amount}
-onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-/>
-<input
-type="date"
-placeholder="Date"
-value={newExpense.date}
-onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-/>
-<input
-type="text"
-placeholder="Notes"
-value={newExpense.notes}
-onChange={(e) => setNewExpense({ ...newExpense, notes: e.target.value })}
-/>
-<button onClick={handleAddExpense}>Add</button>
-</div>
-</div>
-</div>
-</div>
-);
+        {/* Loans Section */}
+        <div className="loans">
+          <h3>Loans</h3>
+          {loans.length > 0 ? (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ borderCollapse: "collapse", tableLayout: "auto" }}>
+                <thead>
+                  <tr>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Original Debt</th>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Current Debt</th>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Interest Rate (%)</th>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loans.map((loan) => (
+                    <tr key={loan.id}>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{loan.original_debt}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{loan.current_debt}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{loan.interest_rate}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        <button onClick={() => handleRemoveLoan(loan.id)}>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p>No loans found.</p>
+          )}
+          <div className="add-loan">
+            <h4>Add New Loan</h4>
+            <input
+              type="number"
+              placeholder="Original Debt"
+              value={newLoan.originalDebt}
+              onChange={(e) => setNewLoan({ ...newLoan, originalDebt: e.target.value })}
+            />
+            <input
+              type="number"
+              placeholder="Current Debt"
+              value={newLoan.currentDebt}
+              onChange={(e) => setNewzoan({ ...newLoan, currentDebt: e.target.value })}
+            />
+            <input
+              type="number"
+              placeholder="Interest Rate"
+              value={newLoan.interestRate}
+              onChange={(e) => setNewLoan({ ...newLoan, interestRate: e.target.value })}
+            />
+            <button onClick={handleAddLoan}>Add Loan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default Dashboard;
