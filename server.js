@@ -294,6 +294,125 @@ app.get("/dashboard", async (req, res) => {
   }
 });
 
+// Backend: Add a New Loan Route
+app.post("/loans", async (req, res) => {
+  const { originalDebt, currentDebt, interestRate } = req.body;
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    const [result] = await pool.query(
+      "INSERT INTO loans (user_id, original_debt, current_debt, interest_rate) VALUES (?, ?, ?, ?)",
+      [userId, originalDebt, currentDebt, interestRate]
+    );
+
+    if (result.affectedRows === 1) {
+      const newId = result.insertId;
+      res.status(201).send({
+        id: newId,
+        user_id: userId,
+        original_debt: originalDebt,
+        current_debt: currentDebt,
+        interest_rate: interestRate,
+      });
+    } else {
+      throw new Error("Failed to add loan.");
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send({ error: err.message });
+  }
+});
+
+// Backend: Get All Loans for a User
+app.get("/loans", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    const [loans] = await pool.query(
+      "SELECT id, original_debt, current_debt, interest_rate FROM loans WHERE user_id = ?",
+      [userId]
+    );
+
+    res.status(200).send(loans);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send({ error: err.message });
+  }
+});
+
+// Backend: Update a Loan
+app.put("/loans/:id", async (req, res) => {
+  const { currentDebt } = req.body;
+  const { id } = req.params;
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    const [result] = await pool.query(
+      "UPDATE loans SET current_debt = ? WHERE id = ? AND user_id = ?",
+      [currentDebt, id, userId]
+    );
+
+    if (result.affectedRows === 1) {
+      res.status(200).send("Loan updated successfully.");
+    } else {
+      res.status(404).send("Loan not found.");
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send({ error: err.message });
+  }
+});
+
+// Backend: Delete a Loan
+app.delete("/loans/:id", async (req, res) => {
+  const { id } = req.params;
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    const [result] = await pool.query(
+      "DELETE FROM loans WHERE id = ? AND user_id = ?",
+      [id, userId]
+    );
+
+    if (result.affectedRows === 1) {
+      res.status(200).send("Loan deleted successfully.");
+    } else {
+      res.status(404).send("Loan not found.");
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send({ error: err.message });
+  }
+});
+
 // Serve Static React Frontend
 app.use(express.static(path.join(__dirname, "frontend/build")));
 
