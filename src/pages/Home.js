@@ -6,8 +6,8 @@ import "./AuthPages.css"; // Use the same CSS as Login and Register
 function Home() {
   return (
     <div className="container">
-      <h1>SAVR</h1>
-      <div className="home-links">
+      <h1 className="home-title">SAVR</h1>
+      <div className="home-box">
         <Link to="/register" className="link-button">
           Register
         </Link>

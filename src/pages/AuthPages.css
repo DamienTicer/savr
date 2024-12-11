@@ -23,7 +23,29 @@ body {
     gap: 15px; /* Space between buttons */
     margin-top: 20px; /* Space above buttons */
 }
+
+/* Title SAVR */
+.home-title {
+    font-size: 3rem; /* Large title */
+    font-weight: bold;
+    margin-bottom: 30px; /* Space below title */
+    color: #FFFF00; /* Yellow color */
+}
   
+/* Box around buttons */
+.home-box {
+    border: 2px solid #FFFF00; /* Yellow border */
+    padding: 20px; /* Padding inside box */
+    border-radius: 10px; /* Rounded corners */
+    background-color: #1a1a1a; /* Dark gray background */
+    box-shadow: 0px 4px 8px rgba(255, 255, 0, 0.5); /* Yellow shadow for depth */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between buttons */
+    align-items: center; /* Center-align buttons */
+}
+  
+/* Links styled as buttons */
 .link-button {
     background-color: #000000; /* Black background */
     color: #FFFF00; /* Yellow text */
@@ -33,9 +55,10 @@ body {
     border-radius: 5px; /* Rounded corners */
     text-align: center; /* Center-align text */
     transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    width: 150px; /* Fixed width for uniform buttons */
 }
   
-/* Hover effect for links */
+/* Hover effect for buttons */
 .link-button:hover {
     background-color: #FFFF00; /* Yellow background */
     color: #000000; /* Black text */
