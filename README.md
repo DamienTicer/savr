@@ -118,6 +118,12 @@ you can do this by either running the command:
     amount DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
    );
+
+   ALTER TABLE tuition_entries DROP FOREIGN KEY tuition_entries_ibfk_1;
+
+   ALTER TABLE tuition_entries
+   ADD CONSTRAINT tuition_entries_ibfk_1
+   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
    ```
 5. Ensure the `id` fields in all tables are set to `AUTO_INCREMENT`.
     You can do so by inputting the following commands into your mysql terminal:
