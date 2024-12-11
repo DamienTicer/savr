@@ -517,6 +517,94 @@ app.delete("/loans/:id", async (req, res) => {
   }
 });
 
+// Verify original password and update to new password
+app.post("/change-password", async (req, res) => {
+  const { originalPassword, newPassword } = req.body;
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    // Get the hashed password for the user
+    const [users] = await pool.query("SELECT password FROM users WHERE id = ?", [userId]);
+    if (users.length === 0) {
+      return res.status(404).send("User not found.");
+    }
+
+    const hashedPassword = users[0].password;
+
+    // Verify original password
+    const isMatch = await bcrypt.compare(originalPassword, hashedPassword);
+    if (!isMatch) {
+      return res.status(401).send("Original password is incorrect.");
+    }
+
+    // Hash the new password
+    const newHashedPassword = await bcrypt.hash(newPassword, 10);
+    const newPasswordLength = newPassword.length;
+
+    // Update the password and its length
+    await pool.query(
+      "UPDATE users SET password = ?, password_length = ? WHERE id = ?",
+      [newHashedPassword, newPasswordLength, userId]
+    );
+
+    // Send the new password length back
+    res.json({ passwordLength: newPasswordLength });
+  } catch (err) {
+    console.error("Error in /change-password route:", err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+
+app.post("/change-email", async (req, res) => {
+  const { originalEmail, newEmail } = req.body;
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    // Verify the original email
+    const [users] = await pool.query("SELECT email FROM users WHERE id = ?", [userId]);
+    if (users.length === 0) {
+      return res.status(404).send("User not found.");
+    }
+
+    if (users[0].email !== originalEmail) {
+      return res.status(401).send("Original email is incorrect.");
+    }
+
+    // Check if the new email already exists
+    const [existingUser] = await pool.query("SELECT * FROM users WHERE email = ?", [newEmail]);
+    if (existingUser.length > 0) {
+      return res.status(400).send("Email is already in use.");
+    }
+
+    // Update the email
+    const [result] = await pool.query("UPDATE users SET email = ? WHERE id = ?", [newEmail, userId]);
+
+    if (result.affectedRows === 1) {
+      res.send("Email updated successfully.");
+    } else {
+      throw new Error("Failed to update email.");
+    }
+  } catch (err) {
+    console.error("Error in /change-email route:", err.message);
+    res.status(500).send(err.message);
+  }
+});
+
 // Serve Static React Frontend
 app.use(express.static(path.join(__dirname, "frontend/build")));
 

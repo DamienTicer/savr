@@ -47,9 +47,12 @@ function Profile() {
 
   // Logout handler
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
+    const confirmLogout = window.confirm("Are you sure you want to log out?");
+    if (confirmLogout) {
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
+  };  
 
   // Delete account handler
   const handleDeleteAccount = async () => {
@@ -74,6 +77,67 @@ function Profile() {
     }
   };
 
+    const [originalPassword, setOriginalPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [passwordChangeMessage, setPasswordChangeMessage] = useState("");
+
+    const handleChangePassword = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch("http://localhost:3001/change-password", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ originalPassword, newPassword }),
+          });
+      
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Failed to change password.");
+          }
+      
+          const data = await response.json();
+          setUserData((prev) => ({ ...prev, passwordLength: data.passwordLength }));
+          setPasswordChangeMessage("Password updated successfully.");
+          setOriginalPassword("");
+          setNewPassword("");
+        } catch (err) {
+          setPasswordChangeMessage(err.message);
+        }
+    };      
+
+    const [originalEmail, setOriginalEmail] = useState("");
+    const [newEmail, setNewEmail] = useState("");
+    const [emailChangeMessage, setEmailChangeMessage] = useState("");
+    
+    const handleChangeEmail = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:3001/change-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ originalEmail, newEmail }),
+        });
+    
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to change email.");
+        }
+    
+        setUserData((prev) => ({ ...prev, email: newEmail }));
+        setEmailChangeMessage("Email updated successfully.");
+        setOriginalEmail("");
+        setNewEmail("");
+      } catch (err) {
+        setEmailChangeMessage(err.message);
+      }
+    };
+    
   // Toggle preferences
   const handlePreferencesChange = (key) => {
     setPreferences((prev) => ({
@@ -126,6 +190,50 @@ function Profile() {
         <button onClick={handleLogout} style={{backgroundColor: "#f44336"}}>Log Out</button>
         <button onClick={handleDeleteAccount} style={{backgroundColor: "#f44336"}}>Delete Account</button>
       </div>
+      <div className="update-sections">
+  <div className="change-email">
+    <h2>Change Email</h2>
+    <input
+      type="email"
+      placeholder="Original Email"
+      value={originalEmail}
+      onChange={(e) => setOriginalEmail(e.target.value)}
+    />
+    <input
+      type="email"
+      placeholder="New Email"
+      value={newEmail}
+      onChange={(e) => setNewEmail(e.target.value)}
+    />
+    <button className="update-button" onClick={handleChangeEmail}>
+      Update Email
+    </button>
+    {emailChangeMessage && <p>{emailChangeMessage}</p>}
+  </div>
+
+  {/* Password Section on the Right */}
+  <div className="change-password">
+    <h2>Change Password</h2>
+    <input
+      type="password"
+      placeholder="Original Password"
+      value={originalPassword}
+      onChange={(e) => setOriginalPassword(e.target.value)}
+    />
+    <input
+      type="password"
+      placeholder="New Password"
+      value={newPassword}
+      onChange={(e) => setNewPassword(e.target.value)}
+    />
+    <button className="update-button" onClick={handleChangePassword}>
+      Update Password
+    </button>
+    {passwordChangeMessage && <p>{passwordChangeMessage}</p>}
+  </div>
+</div>
+
+
 
       <h2>Preferences</h2>
       <div className="preferences">
