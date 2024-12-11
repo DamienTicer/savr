@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./AuthPages.css"; //Import shared aesthetics css
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -32,16 +33,16 @@ function Login() {
   };
 
   return (
-    <div>
+    <div className="container">
       <h1>Login</h1>
       <h2><button
         onClick={goToHomePage}
         style={{
           marginTop: "10px",
           padding: "10px",
-          backgroundColor: "#008CBA",
-          color: "white",
-          border: "none",
+          backgroundColor: "#000000",
+          color: "yellow",
+          border: "solid #FFFF00",
           borderRadius: "5px",
           cursor: "pointer",
         }}>

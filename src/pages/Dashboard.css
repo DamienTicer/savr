@@ -1,3 +1,10 @@
+/* General Styles */
+body {
+    background-color: #000000; /* Black background */
+    color: #FFFF00; /* Yellow text color */
+    font-family: Arial, sans-serif; /* Ensure clean and readable font */
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* 2 columns, equal width */
@@ -10,12 +17,13 @@
 .income-sources,
 .expenses,
 .loans {
-    border: 1px solid #ccc; /* Add a border for each section */
+    border: 2px solid #FFFF00; /* Yellow border for each section */
     padding: 15px; /* Add padding inside each section */
     border-radius: 5px; /* Rounded corners */
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
-    background-color: #f9f9f9; /* Light background for contrast */
+    box-shadow: 0px 2px 5px rgba(255, 255, 0, 0.5); /* Subtle yellow shadow for depth */
+    background-color: #1a1a1a; /* Dark gray background for contrast */
     transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out; /* Smooth transition */
+    color: #FFFF00; /* Ensure text remains yellow */
 }
 
 /* Hover effect */
@@ -23,17 +31,76 @@
 .income-sources:hover,
 .expenses:hover,
 .loans:hover {
-    background-color: #eaeaea; /* Light gray background on hover */
+    background-color: #333333; /* Slightly lighter gray on hover */
     transform: scale(1.02); /* Slightly enlarge the section on hover */
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+    box-shadow: 0px 4px 8px rgba(255, 255, 0, 0.8); /* Enhanced yellow shadow on hover */
 }
 
+/* Section Headers */
 .savings-goals h3,
 .income-sources h3,
 .expenses h3,
 .loans h3 {
     margin-bottom: 10px; /* Space below the section headers */
     text-align: center; /* Center-align the section headers */
+    color: #FFFF00; /* Ensure headers are yellow */
+}
+
+/* Table Styles */
+table {
+    width: 100%; /* Make tables fill their container */
+    border-collapse: collapse; /* Remove gaps between table cells */
+}
+
+th, td {
+    border: 1px solid #FFFF00; /* Yellow borders for table cells */
+    padding: 8px; /* Padding for cell content */
+    text-align: center; /* Center-align text */
+}
+
+th {
+    background-color: #333333; /* Slightly lighter background for table headers */
+    color: #FFFF00; /* Yellow text for headers */
+    font-weight: bold; /* Make headers bold */
+}
+
+td {
+    background-color: #1a1a1a; /* Match section background color */
+    color: #FFFF00; /* Yellow text for cell content */
+}
+
+/* Input Fields */
+input {
+    background-color: #000000; /* Black background for inputs */
+    color: #FFFF00; /* Yellow text for inputs */
+    border: 2px solid #FFFF00; /* Yellow border */
+    padding: 5px; /* Padding inside inputs */
+    border-radius: 4px; /* Rounded corners */
+}
+
+input::placeholder {
+    color: #999999; /* Gray placeholder text for readability */
+}
+
+/* Buttons */
+button {
+    background-color: #000000; /* Black background for buttons */
+    color: #FFFF00; /* Yellow text */
+    border: 2px solid #FFFF00; /* Yellow border */
+    padding: 10px 15px; /* Padding for buttons */
+    cursor: pointer; /* Pointer cursor for buttons */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.child {
+    text-align: center;
+}
+
+button:hover {
+    background-color: #FFFF00; /* Yellow background on hover */
+    color: #000000; /* Black text on hover for contrast */
+    transform: scale(1.05); /* Slightly enlarge button on hover */
 }
 
 /* Responsive Design for Smaller Screens */

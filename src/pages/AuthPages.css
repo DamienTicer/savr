@@ -1,0 +1,99 @@
+/* General Styles */
+body {
+    background-color: #000000; /* Black background */
+    color: #FFFF00; /* Yellow text */
+    font-family: Arial, sans-serif; /* Clean, readable font */
+}
+  
+/* Centered container for the Home page */
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full viewport height */
+    background-color: #000000; /* Black background */
+    color: #FFFF00; /* Yellow text */
+    font-family: Arial, sans-serif; /* Clean font */
+}
+  
+/* Links styled as buttons */
+.home-links {
+    display: flex;
+    gap: 15px; /* Space between buttons */
+    margin-top: 20px; /* Space above buttons */
+}
+  
+.link-button {
+    background-color: #000000; /* Black background */
+    color: #FFFF00; /* Yellow text */
+    border: 2px solid #FFFF00; /* Yellow border */
+    padding: 10px 20px; /* Padding for buttons */
+    text-decoration: none; /* Remove underline */
+    border-radius: 5px; /* Rounded corners */
+    text-align: center; /* Center-align text */
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+  
+/* Hover effect for links */
+.link-button:hover {
+    background-color: #FFFF00; /* Yellow background */
+    color: #000000; /* Black text */
+    transform: scale(1.05); /* Slightly enlarge button on hover */
+}  
+  
+h1, h2 {
+    color: #FFFF00; /* Yellow text for headings */
+    text-align: center;
+    margin-bottom: 20px;
+}
+  
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between inputs */
+    width: 300px;
+    padding: 20px;
+    border: 2px solid #FFFF00; /* Yellow border */
+    border-radius: 10px; /* Rounded corners */
+    background-color: #1a1a1a; /* Dark gray background */
+    box-shadow: 0px 4px 8px rgba(255, 255, 0, 0.5); /* Yellow shadow */
+}
+
+input {
+    background-color: #000000; /* Black input background */
+    color: #FFFF00; /* Yellow text */
+    border: 2px solid #FFFF00; /* Yellow border */
+    padding: 10px;
+    border-radius: 5px;
+}
+  
+input::placeholder {
+    color: #999999; /* Gray placeholder text */
+}
+  
+button {
+    background-color: #000000; /* Black background */
+    color: #FFFF00; /* Yellow text */
+    border: 2px solid #FFFF00; /* Yellow border */
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+  
+button:hover {
+    background-color: #FFFF00; /* Yellow background on hover */
+    color: #000000; /* Black text on hover */
+    transform: scale(1.05); /* Slightly enlarge button on hover */
+}
+  
+.link {
+    color: #FFFF00; /* Yellow link text */
+    text-decoration: none;
+}
+  
+.link:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+

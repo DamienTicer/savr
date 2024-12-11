@@ -311,9 +311,11 @@ function Dashboard() {
 
       <div className="profile-section">
         <h2>User ID: {profile.userId}</h2>
-        <button onClick={handleLogout} style={{ marginLeft: "auto", padding: "10px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "5px", cursor: "pointer"}}>
-          Logout
-        </button>
+        <div class="child">
+          <button onClick={handleLogout} style={{backgroundColor: "#f44336"}}>
+            Logout
+          </button>
+        </div>
         <div className="dashboard-grid">
           {/* Savings Goals Section */}
           <div className="savings-goals">
