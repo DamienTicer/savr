@@ -92,13 +92,36 @@ initializeDb().catch(console.error);
 // User Registration Endpoint
 app.post("/register", async (req, res) => {
   const { email, password } = req.body;
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await pool.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, hashedPassword]);
-    res.status(201).send("User registered successfully.");
-  } catch (err) {
-    res.status(400).send(err.message);
+
+  if (!email || !password) {
+    return res.status(400).send("Email and password are required.");
   }
+
+  try {
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Get the password length
+    const passwordLength = password.length;
+
+    // Insert the user into the database with the password length
+    const [result] = await pool.query(
+      "INSERT INTO users (email, password, password_length) VALUES (?, ?, ?)",
+      [email, hashedPassword, passwordLength]
+    );
+
+    if (result.affectedRows === 1) {
+      res.status(201).send("User registered successfully.");
+    } else {
+      throw new Error("Failed to register user.");
+    }
+  } catch (err) {
+    console.error("Error in /register route:", err.message);
+    res.status(500).send(err.message);
+  }
+
+  console.log("Password Length:", passwordLength);
+  console.log("Query Parameters:", [email, hashedPassword, passwordLength]);
 });
 
 // User Login Endpoint
@@ -295,7 +318,87 @@ app.get("/dashboard", async (req, res) => {
   }
 });
 
-// Backend: Add a New Loan Route
+//fetch user data for profile
+app.get("/profile", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    // Check if preferences exist for the user
+    const [preferences] = await pool.query("SELECT * FROM preferences WHERE user_id = ?", [userId]);
+
+    if (preferences.length === 0) {
+      // Insert default preferences if none exist
+      await pool.query(
+        "INSERT INTO preferences (user_id, savings_goals, income_sources, expenses, loans) VALUES (?, TRUE, TRUE, TRUE, TRUE)",
+        [userId]
+      );
+    }
+
+    // Fetch updated preferences and user data
+    const [user] = await pool.query(
+      "SELECT id AS userId, email, password_length AS passwordLength FROM users WHERE id = ?",
+      [userId]
+    );
+    const [updatedPreferences] = await pool.query("SELECT * FROM preferences WHERE user_id = ?", [userId]);
+
+    res.json({ user: user[0], preferences: updatedPreferences[0] });
+  } catch (err) {
+    console.error("Error in /profile route:", err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+//update preferences
+app.post("/preferences", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+    const { savingsGoals, incomeSources, expenses, loans } = req.body;
+
+    await pool.query(
+      "INSERT INTO preferences (user_id, savings_goals, income_sources, expenses, loans) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE savings_goals = ?, income_sources = ?, expenses = ?, loans = ?",
+      [userId, savingsGoals, incomeSources, expenses, loans, savingsGoals, incomeSources, expenses, loans]
+    );
+
+    res.status(200).send("Preferences updated.");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+//Ability to delete your account
+app.delete("/delete-account", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    await pool.query("DELETE FROM users WHERE id = ?", [userId]);
+    res.status(200).send("Account deleted.");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// Add a New Loan Route
 app.post("/loans", async (req, res) => {
   const { originalDebt, currentDebt, interestRate } = req.body;
   const token = req.headers.authorization?.split(" ")[1];
@@ -331,7 +434,7 @@ app.post("/loans", async (req, res) => {
   }
 });
 
-// Backend: Get All Loans for a User
+// Get All Loans for a User
 app.get("/loans", async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
@@ -355,7 +458,7 @@ app.get("/loans", async (req, res) => {
   }
 });
 
-// Backend: Update a Loan
+// Update a Loan
 app.put("/loans/:id", async (req, res) => {
   const { currentDebt } = req.body;
   const { id } = req.params;
@@ -385,7 +488,7 @@ app.put("/loans/:id", async (req, res) => {
   }
 });
 
-// Backend: Delete a Loan
+// Delete a Loan
 app.delete("/loans/:id", async (req, res) => {
   const { id } = req.params;
   const token = req.headers.authorization?.split(" ")[1];

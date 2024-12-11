@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import "./Dashboard.css"; //Import the CSS file for aesthetic changes
+import { useNavigate } from "react-router-dom";
+import "./Dashboard.css"; // Import the CSS file for aesthetic changes
+
 
 /**
  * Dashboard Component
@@ -14,83 +16,116 @@ function Dashboard() {
   const [loans, setLoans] = useState([]); // State for loans
   const [newLoan, setNewLoan] = useState({ originalDebt: "", currentDebt: "", interestRate: "" });
 
+  const navigate = useNavigate();
+
+  // Helper function for formatted dates
+  const formatDate = (dateString) => new Date(dateString).toLocaleDateString();
+
   // Fetch user profile data from the backend
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem("token"); // Retrieve token from localStorage
-
-        const response = await fetch("http://localhost:3001/dashboard", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setProfile(data); // Set profile data
-      } catch (err) {
-        setError(err.message); // Set error message
-      }
-    };
-
-    const fetchLoans = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3001/loans", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const headers = { Authorization: `Bearer ${token}` };
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch loans.");
-        }
+        // Fetch profile data
+        const profileResponse = await fetch("http://localhost:3001/dashboard", { headers });
+        if (!profileResponse.ok) throw new Error("Failed to fetch profile data.");
+        const profileData = await profileResponse.json();
+        setProfile(profileData);
 
-        const data = await response.json();
-        setLoans(data);
+        // Fetch loans data
+        const loansResponse = await fetch("http://localhost:3001/loans", { headers });
+        if (!loansResponse.ok) throw new Error("Failed to fetch loans data.");
+        const loansData = await loansResponse.json();
+        setLoans(loansData);
       } catch (err) {
-        console.error(err.message);
+        setError(err.message);
       }
     };
 
-    fetchProfile();
-    fetchLoans();
-
+    fetchData();
   }, []);
 
-  // Logout handler
-  const handleLogout = () => {
-    localStorage.removeItem("token"); // Clear the token
-    window.location.href = "/login"; // Redirect to the login page
-  };
-
-  // Handle adding a new savings goal
-  const handleAddSavingsGoal = async () => {
+  // API helpers for add/remove actions
+  const apiCall = async (url, method, body = null) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/savings-goals", {
-        method: "POST",
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(newSavingsGoal),
+        body: body ? JSON.stringify(body) : null,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to add savings goal.");
-      }
-
-      const addedGoal = await response.json();
-      setProfile((prev) => ({
-        ...prev,
-        savingsGoals: [...prev.savingsGoals, addedGoal],
-      }));
-      setNewSavingsGoal({ targetAmount: "", deadline: "" });
+      if (!response.ok) throw new Error("API call failed");
+      return await response.json();
     } catch (err) {
       alert(err.message);
+      return null;
     }
   };
+
+    // Add Handlers
+    const handleAddSavingsGoal = async () => {
+      const addedGoal = await apiCall("http://localhost:3001/savings-goals", "POST", newSavingsGoal);
+      if (addedGoal) {
+        setProfile((prev) => ({
+          ...prev,
+          savingsGoals: [...prev.savingsGoals, addedGoal],
+        }));
+        setNewSavingsGoal({ targetAmount: "", deadline: "" });
+      }
+    };
+  
+    const handleAddIncomeSource = async () => {
+      const addedSource = await apiCall("http://localhost:3001/income-sources", "POST", newIncomeSource);
+      if (addedSource) {
+        setProfile((prev) => ({
+          ...prev,
+          incomeSources: [...prev.incomeSources, addedSource],
+        }));
+        setNewIncomeSource({ source: "", amount: "", frequency: "" });
+      }
+    };
+  
+    const handleAddExpense = async () => {
+      const addedExpense = await apiCall("http://localhost:3001/expenses", "POST", newExpense);
+      if (addedExpense) {
+        setProfile((prev) => ({
+          ...prev,
+          expenses: [...prev.expenses, addedExpense],
+        }));
+        setNewExpense({ category: "", amount: "", date: "", notes: "" });
+      }
+    };
+  
+    const handleAddLoan = async () => {
+      const addedLoan = await apiCall("http://localhost:3001/loans", "POST", newLoan);
+      if (addedLoan) {
+        setLoans((prev) => [...prev, addedLoan]);
+        setNewLoan({ originalDebt: "", currentDebt: "", interestRate: "" });
+      }
+    };
+  
+    // Remove Handlers
+    const handleRemove = async (id, type) => {
+      const confirmDelete = window.confirm("Are you sure you want to remove this entry?");
+      if (!confirmDelete) return;
+  
+      const endpoint = `http://localhost:3001/${type}/${id}`;
+      const removed = await apiCall(endpoint, "DELETE");
+      if (removed) {
+        setProfile((prev) => ({
+          ...prev,
+          [type]: prev[type].filter((item) => item.id !== id),
+        }));
+      }
+    };
+  
+    if (error) return <div>Error: {error}</div>;
+    if (!profile) return <div>Loading...</div>;
 
   // Handle removing a savings goal
   const handleRemoveSavingsGoal = async (id) => {
@@ -125,35 +160,6 @@ function Dashboard() {
       alert(err.message);
     }
   };
-  
-
-  // Handle adding a new income source
-  const handleAddIncomeSource = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/income-sources", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newIncomeSource),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add income source.");
-      }
-
-      const data = await response.json(); //get the new goal with its ID
-      setProfile((prev) => ({
-        ...prev,
-        incomeSources: [...prev.incomeSources, newIncomeSource],
-      }));
-      setNewIncomeSource({ source: "", amount: "", frequency: "" });
-    } catch (err) {
-      alert(err.message);
-    }
-  };
 
   // Handle removing an income source
   const handleRemoveIncomeSource = async (id) => {
@@ -178,35 +184,6 @@ function Dashboard() {
         incomeSources: prev.incomeSources.filter((source) => source.id !== id),
       }));
   
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-  
-
-  // Handle adding a new expense
-  const handleAddExpense = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/expenses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newExpense),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add expense.");
-      }
-
-      const data = await response.json(); //get the new goal with its ID
-      setProfile((prev) => ({
-        ...prev,
-        expenses: [...prev.expenses, newExpense],
-      }));
-      setNewExpense({ category: "", amount: "", date: "", notes: "" });
     } catch (err) {
       alert(err.message);
     }
@@ -239,30 +216,6 @@ function Dashboard() {
       alert(err.message);
     }
   };  
-
-  const handleAddLoan = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/loans", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newLoan),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add loan.");
-      }
-
-      const addedLoan = await response.json();
-      setLoans((prev) => [...prev, addedLoan]);
-      setNewLoan({ originalDebt: "", currentDebt: "", interestRate: "" });
-    } catch (err) {
-      alert(err.message);
-    }
-  };
 
   const handleRemoveLoan = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to remove this loan?");
@@ -297,25 +250,18 @@ function Dashboard() {
     return <div className="loading">Loading...</div>;
   }
 
-  // Helper function to format dates
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
   // Render profile data in styled and scrollable tables
   return (
     <div className="dashboard">
       <header>
         <h1>Dashboard</h1>
       </header>
-
       <div className="profile-section">
         <h2>User ID: {profile.userId}</h2>
-        <div class="child">
-          <button onClick={handleLogout} style={{backgroundColor: "#f44336"}}>
-            Logout
-          </button>
+        <div className="child">
+          <button onClick={() => navigate("/profile")}>Go to Profile</button>
         </div>
+
         <div className="dashboard-grid">
           {/* Savings Goals Section */}
           <div className="savings-goals">

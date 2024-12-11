@@ -90,6 +90,16 @@ you can do this by either running the command:
     interest_rate DECIMAL(5, 2) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
    );
+
+   CREATE TABLE preferences (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    savings_goals BOOLEAN DEFAULT TRUE,
+    income_sources BOOLEAN DEFAULT TRUE,
+    expenses BOOLEAN DEFAULT TRUE,
+    loans BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+   );
    ```
 5. Ensure the `id` fields in all tables are set to `AUTO_INCREMENT`.
     You can do so by inputting the following commands into your mysql terminal:
