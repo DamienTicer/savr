@@ -58,26 +58,28 @@ function Profile() {
 
   // Delete account handler
   const handleDeleteAccount = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete your account?");
-    if (!confirmDelete) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/delete-account", {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete account.");
+    if (window.confirm("Are you sure you want to delete your account?")) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:3001/delete-account", {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to delete account.");
+        }
+  
+        alert("Account deleted successfully.");
+        localStorage.removeItem("token"); // Clear token
+        navigate("/login"); // Redirect to login
+      } catch (err) {
+        alert(err.message);
       }
-
-      alert("Account deleted successfully.");
-      handleLogout();
-    } catch (err) {
-      alert(err.message);
     }
-  };
+  };  
 
     const [originalPassword, setOriginalPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");

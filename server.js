@@ -99,30 +99,29 @@ app.post("/register", async (req, res) => {
   }
 
   try {
-    // Hash the password
+    // Hash the password and get its length
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Get the password length
     const passwordLength = password.length;
 
-    // Insert the user into the database with the password length
-    const [result] = await pool.query(
+    // Insert the user into the database
+    const [userResult] = await pool.query(
       "INSERT INTO users (email, password, password_length) VALUES (?, ?, ?)",
       [email, hashedPassword, passwordLength]
     );
 
-    if (result.affectedRows === 1) {
-      res.status(201).send("User registered successfully.");
-    } else {
-      throw new Error("Failed to register user.");
-    }
+    const userId = userResult.insertId; // Get the new user's ID
+
+    // Insert default preferences for the new user
+    await pool.query(
+      "INSERT INTO preferences (user_id, savings_goals, income_sources, expenses, loans) VALUES (?, ?, ?, ?, ?)",
+      [userId, 1, 1, 1, 1]
+    );
+
+    res.status(201).send("User registered successfully.");
   } catch (err) {
     console.error("Error in /register route:", err.message);
     res.status(500).send(err.message);
   }
-
-  console.log("Password Length:", passwordLength);
-  console.log("Query Parameters:", [email, hashedPassword, passwordLength]);
 });
 
 // User Login Endpoint
@@ -357,6 +356,22 @@ app.get("/preferences", async (req, res) => {
 
     const [preferences] = await pool.query("SELECT * FROM preferences WHERE user_id = ?", [userId]);
 
+    // If no preferences exist, initialize defaults
+    if (preferences.length === 0) {
+      await pool.query(
+        "INSERT INTO preferences (user_id, savings_goals, income_sources, expenses, loans, tuition) VALUES (?, TRUE, TRUE, TRUE, TRUE, TRUE)",
+        [userId]
+      );
+      return res.json({
+        user_id: userId,
+        savings_goals: true,
+        income_sources: true,
+        expenses: true,
+        loans: true,
+        tuition: true,
+      });
+    }
+
     if (preferences.length === 0) {
       return res.status(404).send("Preferences not found.");
     }
@@ -451,10 +466,26 @@ app.delete("/delete-account", async (req, res) => {
     const decoded = jwt.verify(token, "secretkey");
     const userId = decoded.userId;
 
+    await pool.query("START TRANSACTION");
+
+    // Delete associated data
+    await pool.query("DELETE FROM preferences WHERE user_id = ?", [userId]);
+    await pool.query("DELETE FROM savings_goals WHERE user_id = ?", [userId]);
+    await pool.query("DELETE FROM loans WHERE user_id = ?", [userId]);
+    await pool.query("DELETE FROM income_sources WHERE user_id = ?", [userId]);
+    await pool.query("DELETE FROM expenses WHERE user_id = ?", [userId]);
+
+    // Delete user account
     await pool.query("DELETE FROM users WHERE id = ?", [userId]);
-    res.status(200).send("Account deleted.");
+
+    await pool.query("COMMIT");
+
+    // Clear token and return success
+    res.status(200).send("Account deleted successfully. Please log out.");
   } catch (err) {
-    res.status(500).send(err.message);
+    await pool.query("ROLLBACK");
+    console.error("Error in /delete-account route:", err.message);
+    res.status(500).send("Failed to delete account.");
   }
 });
 

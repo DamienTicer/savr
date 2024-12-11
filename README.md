@@ -58,6 +58,14 @@ you can do this by either running the command:
 4. Import the required tables and schema:
    ```sql
    USE savr;
+
+   CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    password_length INT NOT NULL
+    );
+
    CREATE TABLE savings_goals (
        id INT AUTO_INCREMENT PRIMARY KEY,
        user_id INT NOT NULL,
@@ -98,6 +106,7 @@ you can do this by either running the command:
     income_sources BOOLEAN DEFAULT TRUE,
     expenses BOOLEAN DEFAULT TRUE,
     loans BOOLEAN DEFAULT TRUE,
+    tuition BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
    );
 

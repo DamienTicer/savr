@@ -47,7 +47,6 @@ function Dashboard() {
 
         // Fetch profile data
         const profileResponse = await fetch("http://localhost:3001/dashboard", { headers });
-        if (!profileResponse.ok) throw new Error("Failed to fetch profile data.");
         const profileData = await profileResponse.json();
         setProfile(profileData);
 
@@ -702,7 +701,7 @@ const handleRemoveEntry = async (id, type) => {
                 type="number"
                 placeholder="Current Debt"
                 value={newLoan.currentDebt}
-                onChange={(e) => setNewzoan({ ...newLoan, currentDebt: e.target.value })}
+                onChange={(e) => setNewLoan({ ...newLoan, currentDebt: e.target.value })}
               />
               <input
                 type="number"
