@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const path = require("path");
+const bodyParser = require('body-parser');
 
 const app = express();
 
@@ -308,12 +309,61 @@ app.get("/dashboard", async (req, res) => {
     const decoded = jwt.verify(token, "secretkey");
     const userId = decoded.userId;
 
-    const [savingsGoals] = await pool.query("SELECT * FROM savings_goals WHERE user_id = ?", [userId]);
-    const [incomeSources] = await pool.query("SELECT * FROM income_sources WHERE user_id = ?", [userId]);
-    const [expenses] = await pool.query("SELECT * FROM expenses WHERE user_id = ?", [userId]);
+    // Fetch user preferences
+    const [preferences] = await pool.query("SELECT * FROM preferences WHERE user_id = ?", [userId]);
+    const userPreferences = preferences[0];
 
-    res.json({ userId, savingsGoals, incomeSources, expenses });
+    if (!userPreferences) {
+      return res.status(404).send("Preferences not found.");
+    }
+
+    const data = {};
+    if (userPreferences.savings_goals) {
+      const [savingsGoals] = await pool.query("SELECT * FROM savings_goals WHERE user_id = ?", [userId]);
+      data.savingsGoals = savingsGoals;
+    }
+    if (userPreferences.income_sources) {
+      const [incomeSources] = await pool.query("SELECT * FROM income_sources WHERE user_id = ?", [userId]);
+      data.incomeSources = incomeSources;
+    }
+    if (userPreferences.expenses) {
+      const [expenses] = await pool.query("SELECT * FROM expenses WHERE user_id = ?", [userId]);
+      data.expenses = expenses;
+    }
+    if (userPreferences.loans) {
+      const [loans] = await pool.query("SELECT * FROM loans WHERE user_id = ?", [userId]);
+      data.loans = loans;
+    }
+
+    // Log the final response
+    console.log("Dashboard data:", data);
+    res.json(data);
   } catch (err) {
+    console.error("Error in /dashboard route:", err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+app.get("/preferences", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    const [preferences] = await pool.query("SELECT * FROM preferences WHERE user_id = ?", [userId]);
+
+    if (preferences.length === 0) {
+      return res.status(404).send("Preferences not found.");
+    }
+
+    res.json(preferences[0]);
+  } catch (err) {
+    console.error(err.message);
     res.status(500).send(err.message);
   }
 });
@@ -366,15 +416,25 @@ app.post("/preferences", async (req, res) => {
   try {
     const decoded = jwt.verify(token, "secretkey");
     const userId = decoded.userId;
-    const { savingsGoals, incomeSources, expenses, loans } = req.body;
 
-    await pool.query(
-      "INSERT INTO preferences (user_id, savings_goals, income_sources, expenses, loans) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE savings_goals = ?, income_sources = ?, expenses = ?, loans = ?",
-      [userId, savingsGoals, incomeSources, expenses, loans, savingsGoals, incomeSources, expenses, loans]
+    const { savings_goals, income_sources, expenses, loans } = req.body;
+
+    // Log the incoming preferences for debugging
+    console.log("Saving preferences for user ID:", userId);
+    console.log("Preferences received:", req.body);
+
+    const [result] = await pool.query(
+      "UPDATE preferences SET savings_goals = ?, income_sources = ?, expenses = ?, loans = ? WHERE user_id = ?",
+      [savings_goals, income_sources, expenses, loans, userId]
     );
 
-    res.status(200).send("Preferences updated.");
+    if (result.affectedRows === 0) {
+      throw new Error("Failed to update preferences. User may not exist.");
+    }
+
+    res.status(200).send("Preferences updated successfully.");
   } catch (err) {
+    console.error("Error in /preferences route:", err.message);
     res.status(500).send(err.message);
   }
 });

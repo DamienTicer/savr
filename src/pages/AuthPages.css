@@ -202,3 +202,71 @@ button:hover {
   .update-button:hover {
     background-color: #ffcc00; /* Slight hover effect */
   }
+
+  .profile {
+    padding: 20px;
+    display: flex;
+    justify-content: center; /* Centers the grid horizontally */
+    align-items: flex-start; /* Aligns items to the top */
+    gap: 20px; /* Space between the two boxes */
+    background-color: black; /* Background theme */
+    color: yellow; /* Text theme */
+  }
+  
+  .user-info-box,
+  .preferences-box {
+    border: 1px solid yellow; /* Yellow border */
+    padding: 15px;
+    border-radius: 5px;
+    width: 45%; /* Each box takes up 45% of the width */
+    background-color: #222; /* Slightly lighter black */
+    box-shadow: 0px 2px 5px rgba(255, 255, 0, 0.3); /* Yellow-tinted shadow */
+  }
+  
+  .user-info-box h2,
+  .preferences-box h3 {
+    text-align: center;
+    border-bottom: 1px solid yellow;
+    padding-bottom: 10px;
+  }
+  
+  .preference-item {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: yellow;
+  }
+  
+  .preference-item select {
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid yellow;
+    background-color: black;
+    color: yellow;
+  }
+  
+  .preference-item select:hover {
+    background-color: #333;
+  }
+  
+  button {
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: 1px solid yellow;
+    background-color: black;
+    color: yellow;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin-top: 10px;
+  }
+  
+  button:hover {
+    background-color: yellow;
+    color: black;
+  }
+  
+  button:active {
+    background-color: #ccc;
+    color: black;
+  }  

@@ -158,16 +158,17 @@ function Profile() {
         },
         body: JSON.stringify(preferences),
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to save preferences.");
       }
-
-      alert("Preferences updated successfully.");
+  
+      alert("Preferences saved successfully.");
     } catch (err) {
+      console.error("Error saving preferences:", err.message);
       alert(err.message);
     }
-  };
+  };  
 
   // Render error if fetching fails
   if (error) {
@@ -183,95 +184,129 @@ function Profile() {
   return (
     <div className="profile-container">
       <h1>User Profile</h1>
-      <p>User ID: {userData.userId || "Not Available"}</p>
-      <p>Email: {userData.email || "Not Available"}</p>
-      <p>Password: {userData.passwordLength ? "*".repeat(userData.passwordLength) : "Not Available"}</p>
-      <div className="profile-buttons">
-        <button onClick={handleLogout} style={{backgroundColor: "#f44336"}}>Log Out</button>
-        <button onClick={handleDeleteAccount} style={{backgroundColor: "#f44336"}}>Delete Account</button>
-      </div>
-      <div className="update-sections">
-  <div className="change-email">
-    <h2>Change Email</h2>
-    <input
-      type="email"
-      placeholder="Original Email"
-      value={originalEmail}
-      onChange={(e) => setOriginalEmail(e.target.value)}
-    />
-    <input
-      type="email"
-      placeholder="New Email"
-      value={newEmail}
-      onChange={(e) => setNewEmail(e.target.value)}
-    />
-    <button className="update-button" onClick={handleChangeEmail}>
-      Update Email
-    </button>
-    {emailChangeMessage && <p>{emailChangeMessage}</p>}
-  </div>
-
-  {/* Password Section on the Right */}
-  <div className="change-password">
-    <h2>Change Password</h2>
-    <input
-      type="password"
-      placeholder="Original Password"
-      value={originalPassword}
-      onChange={(e) => setOriginalPassword(e.target.value)}
-    />
-    <input
-      type="password"
-      placeholder="New Password"
-      value={newPassword}
-      onChange={(e) => setNewPassword(e.target.value)}
-    />
-    <button className="update-button" onClick={handleChangePassword}>
-      Update Password
-    </button>
-    {passwordChangeMessage && <p>{passwordChangeMessage}</p>}
-  </div>
-</div>
-
-
-
-      <h2>Preferences</h2>
-      <div className="preferences">
-        <label>
-          <input
-            type="checkbox"
-            checked={preferences.savingsGoals}
-            onChange={() => handlePreferencesChange("savingsGoals")}
-          />
-          Show Savings Goals
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={preferences.incomeSources}
-            onChange={() => handlePreferencesChange("incomeSources")}
-          />
-          Show Income Sources
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={preferences.expenses}
-            onChange={() => handlePreferencesChange("expenses")}
-          />
-          Show Expenses
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={preferences.loans}
-            onChange={() => handlePreferencesChange("loans")}
-          />
-          Show Loans
-        </label>
-      </div>
-      <button onClick={handleSavePreferences}>Save Preferences</button>
       <button onClick={() => navigate("/dashboard")}>Back to Dashboard</button>
+      <div className="profile">
+        {/* User Info Section */}
+        <div className="user-info-box">
+        <h2>Profile</h2>
+        <p>User ID: {userData.userId || "Not Available"}</p>
+        <p>Email: {userData.email || "Not Available"}</p>
+        <p>Password: {userData.passwordLength ? "*".repeat(userData.passwordLength) : "Not Available"}</p>
+        <div className="profile-buttons">
+            <button onClick={handleLogout} style={{backgroundColor: "#f44336"}}>Log Out</button>
+            <button onClick={handleDeleteAccount} style={{backgroundColor: "#f44336"}}>Delete Account</button>
+        </div>
+        </div>
+
+        {/* Preferences Section */}
+        <div className="preferences-box">
+        <h3>Preferences</h3>
+        <div className="preference-item">
+          <label>Savings Goals:</label>
+          <select
+            value={preferences.savings_goals ? "active" : "inactive"}
+            onChange={(e) =>
+              setPreferences({
+                ...preferences,
+                savings_goals: e.target.value === "active",
+              })
+            }
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div className="preference-item">
+          <label>Income Sources:</label>
+          <select
+            value={preferences.income_sources ? "active" : "inactive"}
+            onChange={(e) =>
+              setPreferences({
+                ...preferences,
+                income_sources: e.target.value === "active",
+              })
+            }
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div className="preference-item">
+          <label>Expenses:</label>
+          <select
+            value={preferences.expenses ? "active" : "inactive"}
+            onChange={(e) =>
+              setPreferences({
+                ...preferences,
+                expenses: e.target.value === "active",
+              })
+            }
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div className="preference-item">
+          <label>Loans:</label>
+          <select
+            value={preferences.loans ? "active" : "inactive"}
+            onChange={(e) =>
+              setPreferences({
+                ...preferences,
+                loans: e.target.value === "active",
+              })
+            }
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <button onClick={handleSavePreferences}>Save Preferences</button>
+      </div>
+      </div>
+
+        {/* Update Login Info Section */}
+      <div className="update-sections">
+        <div className="change-email">
+            <h2>Change Email</h2>
+            <input
+            type="email"
+            placeholder="Original Email"
+            value={originalEmail}
+            onChange={(e) => setOriginalEmail(e.target.value)}
+            />
+            <input
+            type="email"
+            placeholder="New Email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            />
+            <button className="update-button" onClick={handleChangeEmail}>
+            Update Email
+            </button>
+            {emailChangeMessage && <p>{emailChangeMessage}</p>}
+        </div>
+
+        <div className="change-password">
+            <h2>Change Password</h2>
+            <input
+            type="password"
+            placeholder="Original Password"
+            value={originalPassword}
+            onChange={(e) => setOriginalPassword(e.target.value)}
+            />
+            <input
+            type="password"
+            placeholder="New Password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <button className="update-button" onClick={handleChangePassword}>
+            Update Password
+            </button>
+            {passwordChangeMessage && <p>{passwordChangeMessage}</p>}
+        </div>
+      </div>
     </div>
   );
 }

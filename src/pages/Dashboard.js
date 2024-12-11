@@ -15,6 +15,12 @@ function Dashboard() {
   const [newExpense, setNewExpense] = useState({ category: "", amount: "", date: "", notes: "" });
   const [loans, setLoans] = useState([]); // State for loans
   const [newLoan, setNewLoan] = useState({ originalDebt: "", currentDebt: "", interestRate: "" });
+  const [preferences, setPreferences] = useState({
+    savingsGoals: true,
+    incomeSources: true,
+    expenses: true,
+    loans: true,
+  });
 
   const navigate = useNavigate();
 
@@ -44,8 +50,34 @@ function Dashboard() {
       }
     };
 
+    const fetchPreferences = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:3001/preferences", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch preferences.");
+        }
+  
+        const data = await response.json();
+        setPreferences({
+          savingsGoals: data.savings_goals,
+          incomeSources: data.income_sources,
+          expenses: data.expenses,
+          loans: data.loans,
+        });
+      } catch (err) {
+        console.error("Error fetching preferences:", err.message);
+      }
+    };
+  
+    fetchPreferences();
     fetchData();
   }, []);
+
+  if (!profile) return <div>Loading...</div>;
 
   // API helpers for add/remove actions
   const apiCall = async (url, method, body = null) => {
@@ -257,13 +289,14 @@ function Dashboard() {
         <h1>Dashboard</h1>
       </header>
       <div className="profile-section">
-        <h2>User ID: {profile.userId}</h2>
         <div className="child">
           <button onClick={() => navigate("/profile")}>Go to Profile</button>
         </div>
 
         <div className="dashboard-grid">
           {/* Savings Goals Section */}
+          <div className={`savings-goals ${!preferences.savingsGoals ? "hidden" : ""}`}>
+          {preferences.savingsGoals && (
           <div className="savings-goals">
             <h3>Savings Goals</h3>
             {profile.savingsGoals.length > 0 ? (
@@ -309,8 +342,12 @@ function Dashboard() {
               <button onClick={handleAddSavingsGoal}>Add</button>
             </div>
           </div>
+          )}
+          </div>
 
           {/* Income Sources Section */}
+          <div className={`income-sources ${!preferences.incomeSources ? "hidden" : ""}`}>
+          {preferences.incomeSources && (
           <div className="income-sources">
             <h3>Income Sources</h3>
             {profile.incomeSources.length > 0 ? (
@@ -364,8 +401,12 @@ function Dashboard() {
               <button onClick={handleAddIncomeSource}>Add</button>
             </div>
           </div>
+          )}
+          </div>
 
           {/* Expenses Section */}
+          <div className={`expenses ${!preferences.expenses ? "hidden" : ""}`}>
+          {preferences.expenses && (
           <div className="expenses">
             <h3>Expenses</h3>
             {profile.expenses.length > 0 ? (
@@ -427,8 +468,12 @@ function Dashboard() {
               <button onClick={handleAddExpense}>Add</button>
             </div>
           </div>
+          )}
+          </div>
 
           {/* Loans Section */}
+          <div className={`loans ${!preferences.loans ? "hidden" : ""}`}>
+          {preferences.loans && (
           <div className="loans">
             <h3>Loans</h3>
             {loans.length > 0 ? (
@@ -481,6 +526,8 @@ function Dashboard() {
               />
               <button onClick={handleAddLoan}>Add Loan</button>
             </div>
+          </div>
+          )}
           </div>
         </div>
       </div>

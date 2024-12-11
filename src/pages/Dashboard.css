@@ -103,6 +103,10 @@ button:hover {
     transform: scale(1.05); /* Slightly enlarge button on hover */
 }
 
+.hidden {
+    display: none;
+  }  
+
 /* Responsive Design for Smaller Screens */
 @media (max-width: 768px) {
     .dashboard-grid {
