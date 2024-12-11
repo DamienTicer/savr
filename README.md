@@ -106,7 +106,7 @@ Enzure the `.env` file in the project directory has the following variables:
 DB_HOST=localhost
 DB_USER=<your_mysql_username>
 DB_PASSWORD=<your_mysql_password>
-DB_DATABASE=savr
+DB_NAME=savr
 DB_PORT=3306
 ```
 
