@@ -97,6 +97,8 @@ you can do this by either running the command:
         ALTER TABLE savings_goals MODIFY id INT AUTO_INCREMENT;
         ALTER TABLE expenses MODIFY id INT AUTO_INCREMENT;
 
+After doing this the first time, the only step you have to repeat in this phase if using the same computer, is to do npm install, switch to the directory for the project, and login to mysql.
+
 ---
 
 ### 4. Configure Environment Variables
