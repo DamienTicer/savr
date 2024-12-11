@@ -13,6 +13,7 @@ function Profile() {
     incomeSources: true,
     expenses: true,
     loans: true,
+    tuition: true
   });
   const [error, setError] = useState(null);
 
@@ -36,6 +37,7 @@ function Profile() {
           incomeSources: true,
           expenses: true,
           loans: true,
+          tuition: true
         });
       } catch (err) {
         setError(err.message);
@@ -201,6 +203,21 @@ function Profile() {
         {/* Preferences Section */}
         <div className="preferences-box">
         <h3>Preferences</h3>
+        <div className="preference-item">
+          <label>Tuition Tracking:</label>
+          <select
+            value={preferences.tuition ? "active" : "inactive"}
+            onChange={(e) =>
+              setPreferences({
+                ...preferences,
+                tuition: e.target.value === "active",
+              })
+            }
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
         <div className="preference-item">
           <label>Savings Goals:</label>
           <select

@@ -417,15 +417,15 @@ app.post("/preferences", async (req, res) => {
     const decoded = jwt.verify(token, "secretkey");
     const userId = decoded.userId;
 
-    const { savings_goals, income_sources, expenses, loans } = req.body;
+    const { savings_goals, income_sources, expenses, loans, tuition } = req.body;
 
     // Log the incoming preferences for debugging
     console.log("Saving preferences for user ID:", userId);
     console.log("Preferences received:", req.body);
 
     const [result] = await pool.query(
-      "UPDATE preferences SET savings_goals = ?, income_sources = ?, expenses = ?, loans = ? WHERE user_id = ?",
-      [savings_goals, income_sources, expenses, loans, userId]
+      "UPDATE preferences SET savings_goals = ?, income_sources = ?, expenses = ?, loans = ?, tuition = ? WHERE user_id = ?",
+      [savings_goals, income_sources, expenses, loans, tuition, userId]
     );
 
     if (result.affectedRows === 0) {
@@ -574,6 +574,94 @@ app.delete("/loans/:id", async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send({ error: err.message });
+  }
+});
+
+app.get("/tuition", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    const [results] = await pool.query(
+      "SELECT * FROM tuition_entries WHERE user_id = ?",
+      [userId]
+    );
+
+    res.json(results);
+  } catch (err) {
+    console.error("Error in /tuition route:", err.message);
+    res.status(500).send("Failed to fetch tuition data.");
+  }
+});
+
+app.post("/tuition", async (req, res) => {
+  const { type, source, amount } = req.body;
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  if (!type || !source || !amount) {
+    return res.status(400).send("Missing required fields.");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    const [result] = await pool.query(
+      "INSERT INTO tuition_entries (user_id, type, source, amount) VALUES (?, ?, ?, ?)",
+      [userId, type, source, amount]
+    );
+
+    if (result.affectedRows === 1) {
+      res.status(201).json({
+        id: result.insertId,
+        type,
+        source,
+        amount,
+      });
+    } else {
+      throw new Error("Failed to add tuition entry.");
+    }
+  } catch (err) {
+    console.error("Error in /tuition POST route:", err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+app.delete("/tuition/:id", async (req, res) => {
+  const { id } = req.params;
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    const userId = decoded.userId;
+
+    const [result] = await pool.query(
+      "DELETE FROM tuition_entries WHERE id = ? AND user_id = ?",
+      [id, userId]
+    );
+
+    if (result.affectedRows === 1) {
+      res.status(200).send("Entry deleted successfully.");
+    } else {
+      throw new Error("Failed to delete entry or entry not found.");
+    }
+  } catch (err) {
+    console.error("Error in /tuition DELETE route:", err.message);
+    res.status(500).send(err.message);
   }
 });
 

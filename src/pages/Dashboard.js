@@ -20,7 +20,18 @@ function Dashboard() {
     incomeSources: true,
     expenses: true,
     loans: true,
+    tuition: true
   });
+  const [tuitionEntries, setTuitionEntries] = useState([]);
+  const [scholarshipsAndGrants, setScholarshipsAndGrants] = useState([]);
+  const [newEntry, setNewEntry] = useState({ type: "tuition", source: "", amount: "" });
+  const activeSections = [
+    preferences.savingsGoals && "savings-goals",
+    preferences.incomeSources && "income-sources",
+    preferences.expenses && "expenses",
+    preferences.loans && "loans",
+    preferences.tuition && "tuition",
+  ].filter(Boolean); // Filters out inactive sections
 
   const navigate = useNavigate();
 
@@ -67,17 +78,46 @@ function Dashboard() {
           incomeSources: data.income_sources,
           expenses: data.expenses,
           loans: data.loans,
+          tuition: data.tuition
         });
       } catch (err) {
         console.error("Error fetching preferences:", err.message);
       }
     };
+
+    const fetchTuition = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:3001/tuition", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
   
+        if (!response.ok) {
+          throw new Error("Failed to fetch tuition data.");
+        }
+  
+        const data = await response.json();
+        setTuitionEntries(data.filter((entry) => entry.type === "tuition"));
+        setScholarshipsAndGrants(
+          data.filter((entry) => entry.type === "scholarship" || entry.type === "grant")
+        );
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+  
+    fetchTuition();
     fetchPreferences();
     fetchData();
   }, []);
 
+  if (error) {
+    return <div>Error: {error}</div>
+  }
+
   if (!profile) return <div>Loading...</div>;
+
+  const formatCurrency = (value) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
 
   // API helpers for add/remove actions
   const apiCall = async (url, method, body = null) => {
@@ -272,6 +312,69 @@ function Dashboard() {
     }
   };
 
+  // Add a new entry (tuition, scholarship, or grant)
+  const handleAddEntry = async () => {
+  if (!newEntry.source || !newEntry.amount) {
+    alert("Please fill in all fields.");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch("http://localhost:3001/tuition", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(newEntry),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to add entry.");
+    }
+
+    const addedEntry = await response.json();
+    if (newEntry.type === "tuition") {
+      setTuitionEntries((prev) => [...prev, addedEntry]);
+    } else {
+      setScholarshipsAndGrants((prev) => [...prev, addedEntry]);
+    }
+
+    setNewEntry({ type: "tuition", source: "", amount: "" });
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
+// Remove an entry
+const handleRemoveEntry = async (id, type) => {
+  const confirmDelete = window.confirm("Are you sure you want to remove this entry?");
+  if (!confirmDelete) return;
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`http://localhost:3001/tuition/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to remove entry.");
+    }
+
+    if (type === "tuition") {
+      setTuitionEntries((prev) => prev.filter((entry) => entry.id !== id));
+    } else {
+      setScholarshipsAndGrants((prev) => prev.filter((entry) => entry.id !== id));
+    }
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
   // Render error message if an error occurs
   if (error) {
     return <div className="error">Error: {error}</div>;
@@ -281,6 +384,13 @@ function Dashboard() {
   if (!profile) {
     return <div className="loading">Loading...</div>;
   }
+
+  // Calculate the remaining balance
+  const calculateRemainingBalance = () => {
+  const totalTuition = tuitionEntries.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0);
+  const totalScholarships = scholarshipsAndGrants.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0);
+  return totalTuition - totalScholarships;
+  };
 
   // Render profile data in styled and scrollable tables
   return (
@@ -293,6 +403,82 @@ function Dashboard() {
           <button onClick={() => navigate("/profile")}>Go to Profile</button>
         </div>
 
+          {/* Tuition Section */}
+          <div className={`tuition ${!preferences.tuition ? "hidden" : ""}`}>
+            <h3>Tuition Tracking</h3>
+            {tuitionEntries.length > 0 ? (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ borderCollapse: "collapse", width: "100%" }}>
+                <thead>
+                  <tr>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Type</th>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Source</th>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Amount ($)</th>
+                    <th style={{ border: "1px solid black", padding: "8px" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tuitionEntries.map((entry) => (
+                    <tr key={entry.id}>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>Tuition</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{entry.source}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{entry.amount}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        <button onClick={() => handleRemoveEntry(entry.id, "tuition")}>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {scholarshipsAndGrants.map((entry) => (
+                    <tr key={entry.id}>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        {entry.type === "scholarship" ? "Scholarship" : "Grant"}
+                      </td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{entry.source}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>{entry.amount}</td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        <button onClick={() => handleRemoveEntry(entry.id, entry.type)}>Remove</button>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td colSpan="2" style={{ border: "1px solid black", padding: "8px", fontWeight: "bold" }}>
+                      Remaining Balance
+                    </td>
+                    <td colSpan="2" style={{ border: "1px solid black", padding: "8px", fontWeight: "bold" }}>
+                      ${calculateRemainingBalance()}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            ) : (
+              <p>No entries found.</p>
+            )}
+            <div className="add-tuition-entry">
+              <h4>Add Entry</h4>
+              <select
+                value={newEntry.type}
+                onChange={(e) => setNewEntry({ ...newEntry, type: e.target.value })}
+              >
+                <option value="tuition">Tuition</option>
+                <option value="scholarship">Scholarship</option>
+                <option value="grant">Grant</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Source"
+                value={newEntry.source}
+                onChange={(e) => setNewEntry({ ...newEntry, source: e.target.value })}
+              />
+              <input
+                type="number"
+                placeholder="Amount"
+                value={newEntry.amount}
+                onChange={(e) => setNewEntry({ ...newEntry, amount: e.target.value })}
+              />
+              <button onClick={handleAddEntry}>Add</button>
+            </div>
+          </div>
         <div className="dashboard-grid">
           {/* Savings Goals Section */}
           <div className={`savings-goals ${!preferences.savingsGoals ? "hidden" : ""}`}>
@@ -529,6 +715,9 @@ function Dashboard() {
           </div>
           )}
           </div>
+
+
+
         </div>
       </div>
     </div>

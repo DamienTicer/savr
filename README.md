@@ -100,6 +100,15 @@ you can do this by either running the command:
     loans BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
    );
+
+   CREATE TABLE tuition_entries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type ENUM('tuition', 'scholarship', 'grant') NOT NULL,
+    source VARCHAR(255) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+   );
    ```
 5. Ensure the `id` fields in all tables are set to `AUTO_INCREMENT`.
     You can do so by inputting the following commands into your mysql terminal:
